@@ -21,6 +21,7 @@ db.world_bank_project.find({},{"borrower":true,"_id":false}).pretty()
 // For the “world_bank_project” collection, return a document with the smallest approvalfy value.
 // Sort and limit
 db.world_bank_project.find().sort({"approvalfy":1}).limit(1)
+db.world_bank_project.find({},{"approvalfy":true,"_id":false}).sort({"approvalfy":1}).limit(1)
 
 // Example 2
 // 1) From “world_bank_project” collection, find the number of documents where their sector1’s Percent is greater than or equal to  60.

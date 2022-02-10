@@ -12,6 +12,32 @@ db.world_bank_project.aggregate({$match:{"id":"P130164"}})
 // Return "id" and a non-empty "human_development_project" array
 // which represents "mjtheme_namecode" 
 // containing only documents which name is Human development
+
+db.world_bank_project.aggregate([
+    {$group : {_id : '$mjtheme_namecode.name'}}
+])
+
+db.world_bank_project.aggregate([
+    {$match : {"mjtheme_namecode.name" : "Human development"}},
+    {$project : {"_id": 0, "id" : 1, "human_development_project" : 
+        {$filter : 
+            {input : "$mjtheme_namecode",
+             as : "var",
+             cond : {$eq:["$$var.name", "Human development"]}}}}},
+])
+
+db.world_bank_project.aggregate([
+    {$project : {"_id": 0, "id" : 1, "human_development_project" : 
+        {$filter : 
+            {input : "$mjtheme_namecode",
+             as : "mjtheme_namecode_a",
+             cond : {$eq:["$$mjtheme_namecode_a.name", "Human development"]}}}}},
+    {$project: {"id":1, "human_development_project":1,
+                "size" : {$size : "$human_development_project"}}},        
+    {$match :  {"size":{$gt : 0}}},
+    {$project: {"size":  false}}
+])
+
 db.world_bank_project.find({"mjtheme_namecode.name":{$eq:"Human development"}},
                            {"id":true, "mjtheme_namecode":true, "_id":false})
 db.world_bank_project.aggregate(
@@ -31,24 +57,45 @@ db.world_bank_project.aggregate(
 // Example 3
 // For each countrycode, return the number of documents in the collection 
 // in a format of {"_id" : "code", "count" : value}
+db.world_bank_project.aggregate([
+    {$group : {_id : "$countrycode",
+               count : {$sum : 1}}}
+])
+
 db.world_bank_project.find()                               
 db.world_bank_project.aggregate({$group:{_id :"$countrycode", count:{$sum:1}}})   
      
 // Eample 4
 // Return theme_namecode as an _id and 
 // the number of project has the corresponding theme.
+db.world_bank_project.aggregate([
+    {$unwind : "$theme_namecode"},
+    {$group : {_id : "$theme_namecode",
+               count : {$sum : 1}}}
+])
+
 db.world_bank_project.aggregate({$unwind : "$theme_namecode"},
                                 {$group : {_id : "$theme_namecode", 
                                            count:{$sum:1}}},
                                )                         
 // Example 5
 // Return the approvalfy in double as approvalfy_num with borrower, and id information. 
+db.world_bank_project.aggregate([
+    {$project : 
+        {_id : 0,
+         "id" : 1,
+         "borrower" : 1,
+         "approvalfy_num" : {$convert : {input : "$approvalfy", to : "double"}}}},
+   {$sort:{"approvalfy_num" : -1}}
+])
+
+
 db.world_bank_project.aggregate({$project: 
                                     {"id" : true,
-                                    "borrower" : true, 
-                                    "_id" : false,
-                                    "approvalfy_num" : {$convert:
-                                        {input:"$approvalfy", to:"double"}}
+                                     "borrower" : true, 
+                                     "_id" : false,
+                                     "approvalfy_num" : {$convert:
+                                         {input:"$approvalfy", to:"double"}} 
                                     }
                                 },
                                 {$sort:{"approvalfy_num":-1}})
@@ -57,7 +104,8 @@ db.world_bank_project.aggregate({$project:
 // Example 6
 // In world_bank_project, 
 // 1) find a doucment where totalcommamt is greater than 75000000 and 
-// 2) find the unique names of projectdocs’ DocType and the number of projectdocs belonging to the sorted by DocType.
+// 2) find the unique names of projectdocs’ DocType and the number of projectdocs belonging to the sorted by DocType
+
 //Step 1
 db.world_bank_project.aggregate({$match:{ "totalcommamt": {$gte : 75000000}}})
 
@@ -101,6 +149,16 @@ db.world_bank_project.aggregate({$match:{"totalcommamt": {$gte : 75000000}}},
 // create a field called country_phone_info 
 // which includes data from country_code 
 // (inclulding "name", "dial_code", "code", and "_id")
+
+db.world_bank_project.aggregate([
+    {$match : {"countrycode" : "CN"}},
+    {$lookup : 
+        {from : "country_code",
+         localField : "country_code",
+         foreignField : "code",
+         as : "country_phone_info"}}
+])
+
 db.country_code.find({"code":"CN"})
 db.world_bank_project.find({"countrycode":"CN"},{"countrycode":true})
 

@@ -156,6 +156,7 @@ db.business.find({"restaurant_id" : "40364467"}) // Zero Cs
 //Change all scores of "40356483" from 10 to 11.
 //$
 db.business.find({"restaurant_id": "40356483"}) // has total 6 grades and 3 grades with 10 as a numeric score.
+db.business.find({"restaurant_id": "40356483", "grades.score" : 10})
 db.business.updateMany({"restaurant_id": "40356483", "grades.score" : 10}, 
                        {$set:{"grades.$.score": 11}}) 
 db.business.find({"restaurant_id": "40356483"}) //One element is changed
@@ -201,6 +202,6 @@ db.friend.count()
 // Update its grade to "A+" if score is greater than 10.
 db.business.find({"address.zipcode" : "10462", "address.street" : "Castle Hill Avenue"})
 
-db.business.update({"address.zipcode" : "10462", "address.street" : "Castle Hill Avenue"},
+db.business.updateMany({"address.zipcode" : "10462", "address.street" : "Castle Hill Avenue"},
                    {$set:{"grades.$[elem].grade":"A+"}},
-                   {arrayFilters:[{"elem.score":{$gt:10}}], multi:true})
+                   {arrayFilters:[{"elem.score":{$gt:10}}]})

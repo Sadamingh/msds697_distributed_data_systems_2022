@@ -40,54 +40,68 @@ shan = {"name":"Shan Wang"}
      
 
 // Create/Insert
+use msds697
+db.dropDatabase()
+db.createCollection('friends')
 
+db.friends.insert(diane)
 
 //Bulk Insert 
-
+db.friends.insertMany([yannet, shan])
+db.friends.find()
 
 // Example 2
 //Import raw data - do it on the terminal (not on Mongo shell
 
 //mongoimport --db msds697 --collection business --file ../Data/business.json
-
+db.business.find()
+db.business.findOne()
 
 // Example 3
 // Find all documents where address’s city is San Francisco.
+db.friends.find({"address.city": "San Francisco"})
 
 // Find one document where address’s city is San Francisco.
-
+db.friends.findOne({"address.city": "San Francisco"})
 
 // Example 4
 //Find all businesses in "Manhattan" in "business" under the “msds697” database.
-
+db.business.find({"borough" : "Manhattan"})
 //Only business names?
-
+db.business.find({"borough":"Manhattan"},{"name":true, "_id":false})
 
 // Example 5
 // Set "title" as "Assistant Professor", to all the documents 
 // where "name" is set as "Diane MK Woodbridge".
+db.friends.updateOne({"name" : "Diane MK Woodbridge"}, 
+                     {$set : {"title": "Assistant Professor"}})
+db.friends.findOne({"name" : "Diane MK Woodbridge"})
 
-
-
-//Unset "title", to all the documents,  
+// Unset "title", to all the documents,  
 // where "name" is set as "Diane MK Woodbridge”.
-
+db.friends.updateOne({"name" : "Diane MK Woodbridge"}, 
+                     {$unset : {"title": ""}})
+db.friends.findOne({"name" : "Diane MK Woodbridge"})
                    
 // Set "title" as "Administrative", to all the documents 
 // where "name" is set as "Kirsten Keihl".
 // If there is no corresponding document, create one.
-
-
-
+db.friends.updateMany({"name":"Kirsten Keihl"}, 
+                 {$set:{"title":"Administrative"}},
+                 {upsert : true})
+db.friends.find({"name":"Kirsten Keihl"})
 
 
 // Example 6
 // Increase "kidsCount" by 1 for all documents, where "name" is "Shan Wang".
-
+db.friends.updateMany({"name" : "Shan Wang"},
+                      {$inc : {"kidsCount" : 1}})
+db.friends.find({"name":"Shan Wang"})
 
 // Rename "address" field to "officeAddress" for all the documents.
-
-
+db.friends.updateMany({},
+                      {$rename : {"address" : "officeAddress"}})
+db.friends.find()
 
 // Example 7
 // For documents where "name" is "Diane MK Woodbridge", 
